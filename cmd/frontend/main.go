@@ -3,17 +3,19 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jessevdk/go-flags"
-	pkgConfig "github.com/paveloborin/imageproc/pkg/flags"
-	grpcapi "github.com/paveloborin/imageproc/proto"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/balancer/roundrobin"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
+
+	flags "github.com/jessevdk/go-flags"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer/roundrobin"
+
+	pkgConfig "github.com/paveloborin/imageproc/pkg/flags"
+	grpcapi "github.com/paveloborin/imageproc/proto"
 )
 
 func main() {

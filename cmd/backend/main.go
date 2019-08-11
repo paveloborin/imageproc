@@ -2,16 +2,18 @@ package main
 
 import (
 	"fmt"
-	"github.com/jessevdk/go-flags"
-	pkgConfig "github.com/paveloborin/imageproc/pkg/flags"
-	grpcapi "github.com/paveloborin/imageproc/proto"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"google.golang.org/grpc"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
+
+	flags "github.com/jessevdk/go-flags"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"google.golang.org/grpc"
+
+	pkgConfig "github.com/paveloborin/imageproc/pkg/flags"
+	grpcapi "github.com/paveloborin/imageproc/proto"
 )
 
 func main() {
@@ -21,13 +23,12 @@ func main() {
 		log.Fatal().Err(err).Msg("parse env error")
 	}
 
-	//logger
 	zerolog.MessageFieldName = "MESSAGE"
 	zerolog.LevelFieldName = "LEVEL"
 	zerolog.ErrorFieldName = "ERROR"
 	zerolog.TimestampFieldName = "TIME"
 	zerolog.SetGlobalLevel(conf.GetLogLevel())
-	log.Logger = log.Output(os.Stderr).With().Str("PROGRAM", "imageproc-server").Caller().Logger()
+	log.Logger = log.Output(os.Stderr).With().Str("PROGRAM", "imageproc-server").Logger()
 	log.Info().Msgf("log lever is %s", conf.GetLogLevel())
 
 	grpcServer := grpc.NewServer()

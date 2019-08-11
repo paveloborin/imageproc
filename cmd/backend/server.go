@@ -2,16 +2,18 @@ package main
 
 import (
 	"context"
-	"github.com/h2non/filetype"
-	grpcapi "github.com/paveloborin/imageproc/proto"
-	"github.com/rs/zerolog/log"
-	"github.com/satori/go.uuid"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/h2non/filetype"
+	"github.com/rs/zerolog/log"
+	uuid "github.com/satori/go.uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	grpcapi "github.com/paveloborin/imageproc/proto"
 )
 
 const (
