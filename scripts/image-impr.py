@@ -36,7 +36,7 @@ def create_letter_mask(im):
     for layer in [image_saturation0, image_saturation1]:
         for thrs in range(0, 255, 2):
             thresh_white = cv2.threshold(layer, thrs, 255, cv2.THRESH_TOZERO_INV)[1]  # 50 too high, 25 too low
-            image, contours, hierarchy = cv2.findContours(cv2.dilate(thresh_white, kernel, iterations=1),
+            contours, hierarchy = cv2.findContours(cv2.dilate(thresh_white, kernel, iterations=1),
                                                           cv2.RETR_EXTERNAL,
                                                           cv2.CHAIN_APPROX_NONE)
             for contour in contours:
@@ -58,8 +58,6 @@ def create_letter_mask(im):
 
                 if h > 1.0 * w:
                     continue
-
-                print(a)
 
                 if h > height / 10 or h < height / 50:
                     continue

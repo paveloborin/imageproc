@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	flags "github.com/jessevdk/go-flags"
+	"github.com/jessevdk/go-flags"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
@@ -31,6 +31,10 @@ func main() {
 	log.Logger = log.Output(os.Stderr).With().Str("PROGRAM", "imageproc-server").Logger()
 	log.Info().Msgf("log lever is %s", conf.GetLogLevel())
 
+	if err := os.MkdirAll(conf.TmpDir, os.ModePerm); err != nil {
+		log.Panic().Err(err).Msgf("failed create temporary dir")
+	}
+
 	grpcServer := grpc.NewServer()
 	grpcapi.RegisterImageProcServiceServer(grpcServer, NewServer(conf.TmpDir, conf.PyScript))
 	errs := make(chan error, 2)
@@ -39,7 +43,7 @@ func main() {
 		addr := fmt.Sprintf(":%d", conf.Port)
 		listener, err := net.Listen("tcp", addr)
 		if err != nil {
-			log.Fatal().Err(err).Msgf("failed to listen at %s", addr)
+			log.Panic().Err(err).Msgf("failed to listen at %s", addr)
 		}
 
 		log.Info().Msgf("Serving service at %s", addr)
