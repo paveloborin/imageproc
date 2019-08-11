@@ -17,13 +17,11 @@ def filter_mask(mask,height, width):
     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
     l = len(contours)
-    print(l)
-    if l > 3:
-        l = 3
+    if l > 2:
+        l = 2
 
     contours = sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True)
     for i in range(0, l, 1):
-         print(l)
          cv2.drawContours(mask2, [contours[i]], -1, (255, 255, 255), -1)
 
     return mask2
@@ -38,9 +36,9 @@ def create_letter_mask(im):
     kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
 
     for layer in [image_saturation0, image_saturation1]:
-        for thrs in range(0, 255, 2):
+        for thrs in range(0, 255, 1):
             thresh_white = cv2.threshold(layer, thrs, 255, cv2.THRESH_TOZERO_INV)[1]  # 50 too high, 25 too low
-            contours, hierarchy = cv2.findContours(cv2.dilate(thresh_white, kernel, iterations=1),
+            contours, hierarchy = cv2.findContours(cv2.dilate(thresh_white, kernel, iterations=2),
                                                           cv2.RETR_EXTERNAL,
                                                           cv2.CHAIN_APPROX_NONE)
             for contour in contours:
