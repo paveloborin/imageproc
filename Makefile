@@ -1,7 +1,7 @@
 APP = imageproc-service
 GOOS?=linux
 DOCKERFILE_PATH ?=./Dockerfile
-IMAGE_VERSION=version-1.1.3
+IMAGE_VERSION=version-1.1.4
 
 build-grpc:
 	protoc -I . ./proto/service.proto  --go_out=plugins=grpc:.

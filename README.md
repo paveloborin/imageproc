@@ -8,10 +8,10 @@ Example:
 
 ## Usage
 
-First, run server via prepared docker image by command `make docker-run-server`, or install python3 and cv2 library and run `make run-server` command,
+First, run server via prepared docker image by command `make docker-run-server`, or install python3, cv2 library and run `make run-server` command,
 
 Build client by command `make build-client`.
 
 Run `./bin/client --grpc-port 8050 --grpc-host localhost --input-path ./data/input --output-path ./data/output`,
-where input-path is your images folder, output-path - folder with result images.
+where an input-path is your images folder, output-path - the folder with result images.
 
