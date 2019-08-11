@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package grpcapi;
+
+service ImageProcService {
+    rpc Upload (Request) returns (Reply);
+}
+
+message Request {
+    bytes file = 1;
+}
+
+message Reply {
+    bytes file = 1;
+}
