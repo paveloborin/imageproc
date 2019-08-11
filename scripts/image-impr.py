@@ -11,18 +11,22 @@ def angle_cos(p0, p1, p2):
     d1, d2 = (p0 - p1).astype('float'), (p2 - p1).astype('float')
     return abs(np.dot(d1, d2) / np.sqrt(np.dot(d1, d1) * np.dot(d2, d2)))
 
+def filter_mask(mask,height, width):
+    mask2 = np.zeros((height, width, 1), np.uint8)
+    thresh = cv2.threshold(mask, 50, 255, cv2.THRESH_TOZERO)[1]  # 50 too high, 25 too low
+    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-def make_mask(stats, min_size=0, max_size=100000):
-    n = len(stats)
-    colour_map = np.zeros([n, 3], dtype=np.uint8)
-    for i in range(n):
-        if ((min_size != 0) and (stats[i][4] < min_size or stats[i][4] > max_size)) or (i == 0):
-            colour_map[i] = [0, 0, 0]  # make small regions and region 0 (background) black
-        else:
-            for j in range(3):
-                colour_map[i, j] = 255
-    return colour_map
+    l = len(contours)
+    print(l)
+    if l > 3:
+        l = 3
 
+    contours = sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True)
+    for i in range(0, l, 1):
+         print(l)
+         cv2.drawContours(mask2, [contours[i]], -1, (255, 255, 255), -1)
+
+    return mask2
 
 def create_letter_mask(im):
     image_saturation0 = rgb_to_hsv(im)[:, :, 0]  # output
@@ -56,19 +60,21 @@ def create_letter_mask(im):
                         if max_cos < 0.1:
                             cv2.drawContours(mask, [cnt], -1, (0, 255, 0), 3)
 
-                if h > 1.0 * w:
+                if h > 1.1 * w:
                     continue
 
-                if h > height / 10 or h < height / 50:
+                if h > height / 8 or h < height / 50:
                     continue
 
-                if 0.5 < abs(a) < 89.5:
+                if 0.5 < abs(a):
                     continue
 
                 cv2.drawContours(mask, [box], 0, (255, 255, 255), -1)
 
-    kernel = np.ones((5), np.uint8)
-    mask = cv2.dilate(mask, kernel, iterations=2)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((20,20),np.uint8))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, np.ones((20,20),np.uint8))
+
+    mask = filter_mask(mask,height, width)
 
     return mask
 
@@ -86,11 +92,16 @@ def main():
     name = sys.argv[1]
 
     im = cv2.imread(name)
-    im = equlColor(im)
     blurred = cv2.GaussianBlur(im, (5, 5), 0)
     mask = create_letter_mask(blurred)
+
     dst = cv2.inpaint(im, mask, 3, cv2.INPAINT_TELEA)
-    res = np.hstack((cv2.imread(name), dst))
+    res = equlColor(dst)
+    #im1 = cv2.imread(name)
+    #cv2.imwrite(name, mask)
+    im = cv2.imread(name)
+    res = np.hstack((im, res))
+
     cv2.imwrite(name, res)
 
 

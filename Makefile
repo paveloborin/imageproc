@@ -1,7 +1,7 @@
 APP = imageproc-service
 GOOS?=linux
 DOCKERFILE_PATH ?=./Dockerfile
-IMAGE_VERSION=1.0
+IMAGE_VERSION=version-1.1.3
 
 build-grpc:
 	protoc -I . ./proto/service.proto  --go_out=plugins=grpc:.
@@ -18,7 +18,7 @@ lint:
 	golangci-lint run
 
 build-client:
-	CGO_ENABLED=0 GOOS=${GOOS} go build -a -installsuffix cgo \
+	CGO_ENABLED=0 go build -a -installsuffix cgo \
 		-o ./bin/client ./cmd/frontend/*.go
 
 build-server:
