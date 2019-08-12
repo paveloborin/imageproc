@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	flags "github.com/jessevdk/go-flags"
+	"github.com/jessevdk/go-flags"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
@@ -35,26 +35,44 @@ func main() {
 		log.Panic().Err(err).Msgf("failed create temporary dir")
 	}
 
-	grpcServer := grpc.NewServer()
-	grpcapi.RegisterImageProcServiceServer(grpcServer, NewServer(conf.TmpDir, conf.PyScript))
-	errs := make(chan error, 2)
+	addr := fmt.Sprintf(":%d", conf.Port)
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		log.Panic().Err(err).Msgf("failed to listen at %s", addr)
+	}
 
-	go func() {
-		addr := fmt.Sprintf(":%d", conf.Port)
-		listener, err := net.Listen("tcp", addr)
-		if err != nil {
-			log.Panic().Err(err).Msgf("failed to listen at %s", addr)
-		}
+	gracefulShChan := make(chan interface{})
 
-		log.Info().Msgf("Serving service at %s", addr)
-		errs <- grpcServer.Serve(listener)
-	}()
 	go func() {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, syscall.SIGINT)
-		errs <- fmt.Errorf("%s", <-c)
+
+		select {
+		case s := <-c:
+			log.Info().Msgf("os signal received %v", s)
+			close(gracefulShChan)
+		case <-gracefulShChan:
+			return
+		}
 	}()
 
-	err := <-errs
-	log.Info().Err(err).Msg("service terminated")
+	log.Info().Msgf("starting service at %s", addr)
+	server := grpc.NewServer()
+	grpcapi.RegisterImageProcServiceServer(server, NewServer(conf.TmpDir, conf.PyScript))
+
+	go func() {
+		if err := server.Serve(listener); err != nil {
+			log.Error().Err(err).Msg("listener error")
+			select {
+			case <-gracefulShChan:
+				return
+			default:
+				close(gracefulShChan)
+			}
+		}
+	}()
+
+	<-gracefulShChan
+	server.GracefulStop()
+	log.Info().Msg("service terminated")
 }
