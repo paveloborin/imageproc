@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -16,10 +17,6 @@ import (
 	grpcapi "github.com/paveloborin/imageproc/proto"
 )
 
-const (
-	unsupportedFileMsg = "unsupported file type"
-)
-
 type Server struct {
 	tmpDir   string
 	pyScript string
@@ -32,16 +29,20 @@ func NewServer(tmpDir string, pyScript string) *Server {
 func (s *Server) Upload(ctx context.Context, r *grpcapi.Request) (*grpcapi.Reply, error) {
 	log.Debug().Msgf("image size is %d", len(r.File))
 	if !filetype.IsImage(r.File) {
-		return nil, status.Error(codes.InvalidArgument, unsupportedFileMsg)
+		return nil, status.Error(codes.InvalidArgument, "unsupported file type")
 	}
 
-	filename := filepath.Join(s.tmpDir, uuid.NewV4().String()+".jpg")
+	filename := filepath.Join(s.tmpDir, fmt.Sprintf("%s.jpg", uuid.NewV4().String()))
 	if err := saveImage(filename, r.File); err != nil {
 		log.Error().Err(err).Msg("failed save file to temp dir")
 		return nil, status.Error(codes.Unavailable, "failed save file to temp dir")
 	}
 
-	defer os.Remove(filename)
+	defer func() {
+		if err := os.Remove(filename); err != nil {
+			log.Error().Err(err).Msg("failed remove file")
+		}
+	}()
 
 	cmd := exec.Command("python3", s.pyScript, filename)
 	cmd.Stdout = os.Stdout
@@ -62,8 +63,5 @@ func (s *Server) Upload(ctx context.Context, r *grpcapi.Request) (*grpcapi.Reply
 
 func saveImage(filename string, image []byte) error {
 	log.Debug().Msgf("try to save file %s", filename)
-	if err := ioutil.WriteFile(filename, image, 0644); err != nil {
-		return err
-	}
-	return nil
+	return ioutil.WriteFile(filename, image, 0644)
 }

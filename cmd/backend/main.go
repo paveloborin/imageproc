@@ -63,12 +63,13 @@ func main() {
 	go func() {
 		if err := server.Serve(listener); err != nil {
 			log.Error().Err(err).Msg("listener error")
-			select {
-			case <-gracefulShChan:
-				return
-			default:
-				close(gracefulShChan)
-			}
+		}
+
+		select {
+		case <-gracefulShChan:
+			return
+		default:
+			close(gracefulShChan)
 		}
 	}()
 

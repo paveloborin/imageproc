@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	flags "github.com/jessevdk/go-flags"
+	"github.com/jessevdk/go-flags"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
@@ -38,7 +38,8 @@ func main() {
 			log.Error().Err(err).Msg("Failed to close the cloud GRPC service connection")
 		}
 	}()
-	grpcClient := grpcapi.NewImageProcServiceClient(conn)
+
+	client := grpcapi.NewImageProcServiceClient(conn)
 
 	files, err := ioutil.ReadDir(conf.InputPath)
 	if err != nil {
@@ -57,9 +58,9 @@ func main() {
 			continue
 		}
 
-		file, err := uploadImage(grpcClient, data)
+		file, err := uploadImage(client, data)
 		if err != nil {
-			log.Error().Err(err).Msg("failed to upload image")
+			log.Error().Err(err).Msg("failed to process image on server")
 			continue
 		}
 
@@ -75,7 +76,7 @@ func connectToGRPCService(host string, port int) *grpc.ClientConn {
 	address := fmt.Sprintf("%s:%d", host, port)
 	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBalancerName(roundrobin.Name))
 	if err != nil {
-		log.Error().Err(err).Msgf("Failed to connect to grpc service at %s", address)
+		log.Error().Err(err).Msgf("failed to connect to grpc service at %s", address)
 		panic(err)
 	}
 	return conn
